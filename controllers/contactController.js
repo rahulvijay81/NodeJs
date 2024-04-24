@@ -1,27 +1,45 @@
+const asyncHandler = require("express-async-handler");
+
 //@desc Get all contacts
 //@route Get /api/contacts
 //@access public
 
-const getAllContact = (req, res) => {
+const getAllContact = asyncHandler(async (req, res) => {
   res.status(200).json({ message: "Get all contacts" });
-};
+});
 
-const createContacts = (req, res) => {
+// create a new contact api 
+
+const createContacts = asyncHandler(async (req, res) => {
+  const { name, email, phone } = req.body;
+
+  if (!name || !email || !phone) {
+    res.status(400);
+    throw new Error("All fileds are mandatory");
+  }
   res.status(201).json({ message: "Create Contacts" });
-};
+});
 
-const getContact = (req, res) => {
+// get contact information
+
+const getContact = asyncHandler(async (req, res) => {
   res.status(200).json({ message: `Get contact Details for ${req.params.id}` });
-};
+});
 
-const updateConatct = (req, res) => {
+// update contact details
+
+const updateConatct = asyncHandler(async (req, res) => {
   res.status(200).json({ message: `Update contact for ${req.params.id}` });
-};
+});
 
-const deleteContact = (req, res) => {
+// delete contact details
+
+const deleteContact = asyncHandler(async (req, res) => {
   res.status(200).json({ message: `Delete contact for ${req.params.id}` });
-};
+});
 
+
+// export module to router
 module.exports = {
   getAllContact,
   createContacts,
