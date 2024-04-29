@@ -1,14 +1,16 @@
 const asyncHandler = require("express-async-handler");
+const Contact = require("../models/contactModel");
 
 //@desc Get all contacts
 //@route Get /api/contacts
 //@access public
 
 const getAllContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: "Get all contacts" });
+  const contacts = await Contact.find();
+  res.status(200).json(contacts);
 });
 
-// create a new contact api 
+// create a new contact api
 
 const createContacts = asyncHandler(async (req, res) => {
   const { name, email, phone } = req.body;
@@ -17,27 +19,57 @@ const createContacts = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("All fileds are mandatory");
   }
-  res.status(201).json({ message: "Create Contacts" });
+  const contact = await Contact.create({
+    name,
+    email,
+    phone,
+  });
+  res.status(201).json(contact);
 });
 
 // get contact information
 
 const getContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `Get contact Details for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+  res.status(200).json(contact);
 });
 
 // update contact details
 
 const updateConatct = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `Update contact for ${req.params.id}` });
+  const contact = await Contact.findById(req.params.id);
+
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+
+  const updatedContact = await Contact.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true }
+  );
+  res.status(200).json(updatedContact);
 });
 
 // delete contact details
 
 const deleteContact = asyncHandler(async (req, res) => {
-  res.status(200).json({ message: `Delete contact for ${req.params.id}` });
-});
+  const contact = await Contact.findById(req.params.id);
 
+  if (!contact) {
+    res.status(404);
+    throw new Error("Contact not found");
+  }
+
+  await Contact.findByIdAndDelete(req.params.id);
+  res.status(200).json(contact);
+});
 
 // export module to router
 module.exports = {
