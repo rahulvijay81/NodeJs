@@ -2,6 +2,8 @@ const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
+const nodemailer = require("nodemailer");
+const { sendMail } = require("../nodemailerHelper/nodemailerHelper");
 
 // register user
 const registerUser = asyncHandler(async (req, res) => {
@@ -41,7 +43,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// login user api 
+// login user api
 const LoginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
@@ -62,14 +64,19 @@ const LoginUser = asyncHandler(async (req, res) => {
   //checking user is available or not
   const user = await User.findOne({ email });
 
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    res.status(400);
+    throw new Error("Invalid email address or password");
+  }
+
   //checking password is correct or not
   if (!(await bcrypt.compare(password, user.password))) {
     res.status(400);
     throw new Error("Password is incorrect");
   }
 
-  //compare password with hash password
-  if (user && (await bcrypt.compare(password, user.password))) {
+  try {
+    const emailInfo = await sendMail(email, user);
     const accessToken = jwt.sign(
       {
         user: {
@@ -83,10 +90,13 @@ const LoginUser = asyncHandler(async (req, res) => {
         expiresIn: "15m",
       }
     );
-    res.status(200).json({ accessToken });
-  } else {
-    res.status(400);
-    throw new Error("Invalid email address and password");
+    res.status(200).json({
+      accessToken,
+      emailInfo: emailInfo,
+      preview: nodemailer.getTestMessageUrl(emailInfo),
+    });
+  } catch (error) {
+    res.status(500).json({ error, message: "Internal Server Error" });
   }
 });
 
