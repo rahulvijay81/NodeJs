@@ -7,13 +7,16 @@ const User = require("../models/userModel");
 const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password } = req.body;
 
+  //checking username,email and password are avaliable
   if (!username || !email || !password) {
     res.status(400);
     throw new Error("All fields are mandatory");
   }
 
+  //checking is user already existing
   const userAvailable = await User.findOne({ email });
 
+  //if user is already exist show error
   if (userAvailable) {
     res.status(400);
     throw new Error("User already registered");
@@ -21,7 +24,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
   //Hash Password
   const hasedPassword = await bcrypt.hash(password, 10);
-  console.log("Hashed password", hasedPassword);
 
   const user = await User.create({
     username,
@@ -29,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     password: hasedPassword,
   });
 
-  console.log(`user created ${user}`);
+  console.log(`user created ${user}`); // loging user data
 
   if (user) {
     res.status(201).json({ _id: user.id, email: user.email });
@@ -39,16 +41,32 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 });
 
-// login user
+// login user api 
 const LoginUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  //checking email and password are avaliable
   if (!email || !password) {
     res.status(400);
     throw new Error("All fields are mandatory");
   }
 
+  //checking email is valid or not
+  if (!emailRegex.test(email)) {
+    res.status(400);
+    throw new Error("Invalid email address");
+  }
+
+  //checking user is available or not
   const user = await User.findOne({ email });
+
+  //checking password is correct or not
+  if (!(await bcrypt.compare(password, user.password))) {
+    res.status(400);
+    throw new Error("Password is incorrect");
+  }
 
   //compare password with hash password
   if (user && (await bcrypt.compare(password, user.password))) {
@@ -68,7 +86,7 @@ const LoginUser = asyncHandler(async (req, res) => {
     res.status(200).json({ accessToken });
   } else {
     res.status(400);
-    throw new Error("Invalid email or password");
+    throw new Error("Invalid email address and password");
   }
 });
 
