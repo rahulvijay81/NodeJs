@@ -10,7 +10,7 @@ async function sendMail(email, user) {
   });
 
   const message = {
-    from: 'Rahul Vijay',
+    from: "Rahul Vijay",
     to: email,
     subject: "You have logged in successfully.",
     text: "You have logged in successfully.",

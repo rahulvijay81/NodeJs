@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const nodemailer = require("nodemailer");
-const { sendMail } = require("../nodemailerHelper/nodemailerHelper");
+const { sendMail } = require("../nodemailer/nodemailerHelper");
 
 // register user
 const registerUser = asyncHandler(async (req, res) => {
@@ -76,7 +76,10 @@ const LoginUser = asyncHandler(async (req, res) => {
   }
 
   try {
+    //sending email 
     const emailInfo = await sendMail(email, user);
+
+    //sent jwt token
     const accessToken = jwt.sign(
       {
         user: {
